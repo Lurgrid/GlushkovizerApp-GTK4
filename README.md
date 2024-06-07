@@ -5,7 +5,7 @@ expression into an automaton and represent it and its orbits
 
 ## Glushkovizer library
 
-For more information on the library, please visit this repository~:
+For more information on the library, please visit this repository :
 
 > https://github.com/Lurgrid/Glushkovizer
 
