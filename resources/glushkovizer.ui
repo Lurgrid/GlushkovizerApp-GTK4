@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <template class="GlushkovizerApp" parent="GtkApplicationWindow">
+  <template class="GlushkovizerApp" parent="AdwApplicationWindow">
     <property name="default-height">720</property>
     <property name="default-width">1080</property>
     <property name="title">Glushkovizer App</property>
@@ -9,7 +9,7 @@
       <object class="GtkScrolledWindow">
         <property name="hscrollbar-policy">2</property>
         <child>
-          <object class="GtkBox" id="content">
+          <object class="GtkBox">
             <property name="orientation">1</property>
             <property name="spacing">10</property>
             <property name="margin-bottom">10</property>
@@ -19,7 +19,6 @@
             <child>
               <object class="GtkBox">
                 <property name="hexpand">true</property>
-                <property name="hexpand-set">true</property>
                 <property name="spacing">10</property>
                 <child>
                   <object class="GtkButton">
@@ -61,45 +60,55 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="list">
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="orientation">1</property>
-                <property name="visible">false</property>
+              <object class="GtkBox">
+                <property name="orientation">0</property>
+                <property name="spacing">10</property>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="ellipsize">2</property>
-                    <property name="justify">2</property>
-                    <property name="label" translatable="true">Glushkov's Automata</property>
-                    <property name="selectable">true</property>
-                    <style>
-                      <class name="glush_title"/>
-                    </style>
+                  <object class="GtkButton" id="prev">
+                    <property name="label">◀</property>
+                    <signal name="activate" handler="prev_handle" swapped="True"/>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image">
+                  <object class="GtkScrolledWindow" id="scroll_switcher">
+                    <property name="vscrollbar-policy">2</property>
                     <property name="hexpand">true</property>
-                    <property name="vexpand">true</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="orbit_title">
-                    <property name="ellipsize">2</property>
-                    <property name="justify">2</property>
-                    <property name="label" translatable="true">The maximum orbits of this automaton</property>
-                    <property name="selectable">true</property>
-                    <property name="visible">false</property>
                     <style>
-                      <class name="glush_title"/>
+                      <class name="stack_scroll"/>
                     </style>
+                    <child>
+                      <object class="GtkStackSwitcher" id="switcher">
+                        <property name="stack">stack</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkBox" id="orbit">
-                    <property name="visible">false</property>
-                    <property name="hexpand">true</property>
-                    <property name="vexpand">true</property>
+                  <object class="GtkButton" id="next">
+                    <property name="label">▶</property>
+                    <signal name="activate" handler="next_handle" swapped="True"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="stack">
+                <property name="transition-type">1</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name" translatable="true">automata</property>
+                    <property name="title" translatable="true">Automata</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">1</property>
+                        <child>
+                          <object class="GtkImage" id="image">
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
                   </object>
                 </child>
               </object>

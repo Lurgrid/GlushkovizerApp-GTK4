@@ -5,20 +5,16 @@ use gtk::gdk::Display;
 use gtk::{gio, glib};
 use gtk::{prelude::*, CssProvider};
 
-#[cfg(feature = "no-adwaita")]
-pub type App = gtk::Application;
-#[cfg(not(feature = "no-adwaita"))]
-pub type App = adw::Application;
-
 glib::wrapper! {
     pub struct GlushkovizerApp(ObjectSubclass<imp::GlushkovizerApp>)
-        @extends gtk::ApplicationWindow, gtk::Window, gtk::Widget,
-        @implements gio::ActionGroup, gio::ActionMap, gtk::Accessible, gtk::Buildable,
-                    gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+        @extends adw::ApplicationWindow, gtk::ApplicationWindow, gtk::Window,
+        gtk::Widget, @implements gio::ActionGroup, gio::ActionMap,
+        gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native,
+        gtk::Root, gtk::ShortcutManager;
 }
 
 impl GlushkovizerApp {
-    pub fn new(app: &App) -> Self {
+    pub fn new(app: &adw::Application) -> Self {
         gio::resources_register_include!("glushkovizer.gresource")
             .expect("Failed to register resources.");
         app.set_accels_for_action("win.save", &["<Ctrl>s"]);

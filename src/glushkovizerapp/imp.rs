@@ -1,24 +1,22 @@
+use adw::prelude::*;
+use adw::subclass::prelude::*;
 use glib::subclass::InitializingObject;
-use glushkovizer::automata::Automata;
 use glushkovizer::prelude::*;
-use glushkovizer::regexp::RegExp;
-use gtk::gdk::Texture;
-use gtk::gdk_pixbuf::PixbufLoader;
-use gtk::subclass::prelude::*;
+use glushkovizer::{automata::Automata, regexp::RegExp};
+use gtk::ScrolledWindow;
 use gtk::{
-    glib, template_callbacks, Align, Button, CompositeTemplate, Entry, FileDialog, FileFilter,
-    Image, Label,
+    gdk::Texture, gdk_pixbuf::PixbufLoader, glib, template_callbacks, Align, Button,
+    CompositeTemplate, Entry, FileDialog, FileFilter, Image, Stack, StackSwitcher, TextView,
 };
-use gtk::{prelude::*, TextView};
-use std::cell::Cell;
-use std::fmt::Display;
-use std::fs::File;
-use std::hash::Hash;
-use std::io::{BufReader, Error, Result, Write};
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
-
-const IMAGE_MARG: i32 = 100;
+use std::{
+    cell::Cell,
+    fmt::Display,
+    fs::File,
+    hash::Hash,
+    io::{BufReader, Error, Result, Write},
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 
 macro_rules! error {
     ($error:expr, $x:expr) => {{
@@ -33,27 +31,28 @@ macro_rules! error {
 pub struct GlushkovizerApp {
     automata: Cell<Automata<'static, char, usize>>,
     #[template_child]
-    pub content: TemplateChild<gtk::Box>,
-    #[template_child]
     pub entry: TemplateChild<Entry>,
-    #[template_child]
-    pub list: TemplateChild<gtk::Box>,
     #[template_child]
     pub image: TemplateChild<Image>,
     #[template_child]
     pub error: TemplateChild<TextView>,
     #[template_child]
-    pub orbit_title: TemplateChild<Label>,
+    pub scroll_switcher: TemplateChild<ScrolledWindow>,
     #[template_child]
-    pub orbit: TemplateChild<gtk::Box>,
-    startup: bool,
+    pub stack: TemplateChild<Stack>,
+    #[template_child]
+    pub switcher: TemplateChild<StackSwitcher>,
+    #[template_child]
+    pub prev: TemplateChild<Button>,
+    #[template_child]
+    pub next: TemplateChild<Button>,
 }
 
 #[glib::object_subclass]
 impl ObjectSubclass for GlushkovizerApp {
     const NAME: &'static str = "GlushkovizerApp";
     type Type = super::GlushkovizerApp;
-    type ParentType = gtk::ApplicationWindow;
+    type ParentType = adw::ApplicationWindow;
 
     fn class_init(klass: &mut Self::Class) {
         klass.bind_template();
@@ -78,8 +77,21 @@ impl ObjectImpl for GlushkovizerApp {
     fn constructed(&self) {
         self.parent_constructed();
 
-        self.orbit
-            .bind_property("visible", &self.orbit_title.get(), "visible")
+        self.error
+            .bind_property("visible", &self.stack.get(), "visible")
+            .invert_boolean()
+            .bidirectional()
+            .sync_create()
+            .build();
+
+        self.stack
+            .bind_property("visible", &self.switcher.get(), "visible")
+            .bidirectional()
+            .sync_create()
+            .build();
+
+        self.next
+            .bind_property("visible", &self.prev.get(), "visible")
             .bidirectional()
             .sync_create()
             .build();
@@ -123,53 +135,49 @@ impl GlushkovizerApp {
     async fn handle_save_clicked(&self, _: &Button) {
         self.save().await;
     }
+
+    #[template_callback]
+    async fn prev_handle(&self, _: &Button) {
+        let hadj = self.scroll_switcher.vadjustment();
+        let old_v = hadj.value();
+        hadj.set_value(0f64);
+        self.scroll_switcher.set_vadjustment(Some(&hadj));
+    }
+
+    #[template_callback]
+    async fn next_handle(&self, _: &Button) {
+        let hadj = self.scroll_switcher.vadjustment();
+        let old_v = hadj.value();
+        hadj.set_value(0f64);
+        self.scroll_switcher.set_vadjustment(Some(&hadj));
+    }
 }
 
 impl GlushkovizerApp {
     fn update(&self) {
-        while let Some(child) = self.orbit.first_child() {
-            self.orbit.remove(&child);
-        }
-        if !self.startup {
-            self.list
-                .bind_property("visible", &self.error.get(), "visible")
-                .invert_boolean()
-                .bidirectional()
-                .sync_create()
-                .build();
+        let pauto = unsafe { self.stack.first_child().unwrap_unchecked() };
+        while let Some(child) = pauto.next_sibling() {
+            self.stack.remove(&child)
         }
         let a = unsafe { &*self.automata.as_ptr() };
-        let width = self.obj().width() - IMAGE_MARG;
-        let height = self.obj().height() - IMAGE_MARG;
+        let width = self.stack.width();
+        let height = self.obj().height() - 110;
         let texture = match get_automata_texture(a, width, height) {
             Err(e) => error!(self.error, e),
             Ok(t) => t,
         };
         self.image.set_from_paintable(Some(&texture));
         self.image.set_size_request(width, height);
-        self.list.set_visible(true);
+        self.stack.set_visible(true);
 
         let scc = a
             .extract_scc()
             .into_iter()
             .filter(|a| a.is_orbit())
             .collect::<Vec<_>>();
-        let nb: i32 = match scc.len() as i32 {
-            0 => {
-                self.orbit.set_visible(false);
-                return;
-            }
-            len => {
-                self.orbit.set_visible(true);
-                len
-            }
-        };
 
-        let owidth = width / nb;
-        let oheight = height / nb;
-
-        for automata in scc {
-            let texture = match get_automata_texture(&automata, owidth, oheight) {
+        for (ind, automata) in scc.into_iter().enumerate() {
+            let texture = match get_automata_texture(&automata, width, height) {
                 Err(e) => error!(self.error, e),
                 Ok(t) => t,
             };
@@ -178,8 +186,12 @@ impl GlushkovizerApp {
             image.set_valign(Align::Fill);
             image.set_hexpand(true);
             image.set_vexpand(true);
-            image.set_size_request(owidth, oheight);
-            self.orbit.append(&image);
+            image.set_size_request(width, height);
+            self.stack.add_titled(
+                &image,
+                Some(&format!("orbit{ind}")),
+                &format!("Orbit N°{ind}"),
+            );
         }
     }
 
@@ -303,3 +315,5 @@ impl WidgetImpl for GlushkovizerApp {}
 impl WindowImpl for GlushkovizerApp {}
 
 impl ApplicationWindowImpl for GlushkovizerApp {}
+
+impl AdwApplicationWindowImpl for GlushkovizerApp {}
