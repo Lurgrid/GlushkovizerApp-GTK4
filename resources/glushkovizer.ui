@@ -66,7 +66,7 @@
                 <child>
                   <object class="GtkButton" id="prev">
                     <property name="label">◀</property>
-                    <signal name="activate" handler="prev_handle" swapped="True"/>
+                    <signal name="clicked" handler="prev_handle" swapped="True"/>
                   </object>
                 </child>
                 <child>
@@ -86,7 +86,7 @@
                 <child>
                   <object class="GtkButton" id="next">
                     <property name="label">▶</property>
-                    <signal name="activate" handler="next_handle" swapped="True"/>
+                    <signal name="clicked" handler="next_handle" swapped="True"/>
                   </object>
                 </child>
               </object>

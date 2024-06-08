@@ -138,18 +138,14 @@ impl GlushkovizerApp {
 
     #[template_callback]
     async fn prev_handle(&self, _: &Button) {
-        let hadj = self.scroll_switcher.vadjustment();
-        let old_v = hadj.value();
-        hadj.set_value(0f64);
-        self.scroll_switcher.set_vadjustment(Some(&hadj));
+        self.scroll_switcher
+            .emit_scroll_child(gtk::ScrollType::PageLeft, true);
     }
 
     #[template_callback]
     async fn next_handle(&self, _: &Button) {
-        let hadj = self.scroll_switcher.vadjustment();
-        let old_v = hadj.value();
-        hadj.set_value(0f64);
-        self.scroll_switcher.set_vadjustment(Some(&hadj));
+        self.scroll_switcher
+            .emit_scroll_child(gtk::ScrollType::PageRight, false);
     }
 }
 
@@ -159,6 +155,8 @@ impl GlushkovizerApp {
         while let Some(child) = pauto.next_sibling() {
             self.stack.remove(&child)
         }
+        self.stack.set_visible_child(&pauto);
+
         let a = unsafe { &*self.automata.as_ptr() };
         let width = self.stack.width();
         let height = self.obj().height() - 110;

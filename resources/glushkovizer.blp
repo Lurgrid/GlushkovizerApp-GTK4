@@ -60,7 +60,7 @@ template $GlushkovizerApp : $AdwApplicationWindow {
 
                 Button prev {
                     label: "◀";
-                    activate => prev_handle() swapped;
+                    clicked => $prev_handle() swapped;
                 }
 
                 ScrolledWindow scroll_switcher {
@@ -78,7 +78,7 @@ template $GlushkovizerApp : $AdwApplicationWindow {
 
                 Button next {
                     label: "▶";
-                    activate => next_handle() swapped;
+                    clicked => $next_handle() swapped;
                 }
 
             }

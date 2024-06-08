@@ -16,6 +16,7 @@ textview.error_box {
 .stack_scroll scrollbar,
 .stack_scroll scrollbar slider,
 .stack_scroll scrollbar trough {
+    outline: 0;
     min-width: 0;
     min-height: 0;
 }
