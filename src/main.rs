@@ -1,4 +1,5 @@
 mod glushkovizerapp;
+mod utils;
 use glushkovizerapp::GlushkovizerApp;
 use gtk::{glib, prelude::*};
 

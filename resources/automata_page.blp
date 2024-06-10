@@ -1,0 +1,54 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $AutomataPage : Box {
+    orientation: vertical;
+
+    Image image {
+        hexpand: true;
+        vexpand: true;
+        halign: fill;
+        valign: fill;
+    }
+
+    Box {
+        valign: center;
+        halign: center;
+        spacing: 50;
+        margin-bottom: 50;
+
+        Box {
+            orientation: vertical;
+            spacing: 15;
+
+            styles [
+                "prop_box"
+            ]
+
+            Box {
+                spacing: 10;
+
+                Label {
+                    label: _("Stable ? ");
+                }
+                Label stable {
+                    label: "N/A";
+                }
+            }
+            Box {
+                spacing: 10;
+
+                Label {
+                    label: _("Transverse ? ");
+                }
+                Label transverse {
+                    label: "N/A";
+                }
+            }
+        }
+
+        Button next {
+            label: _("Next");
+        }
+    }
+}

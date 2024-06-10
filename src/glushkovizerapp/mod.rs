@@ -1,3 +1,4 @@
+mod automata_page;
 mod imp;
 
 use glib::Object;
@@ -8,7 +9,8 @@ use gtk::{prelude::*, CssProvider};
 glib::wrapper! {
     pub struct GlushkovizerApp(ObjectSubclass<imp::GlushkovizerApp>)
         @extends adw::ApplicationWindow, gtk::ApplicationWindow, gtk::Window,
-        gtk::Widget, @implements gio::ActionGroup, gio::ActionMap,
+        gtk::Widget,
+        @implements gio::ActionGroup, gio::ActionMap,
         gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native,
         gtk::Root, gtk::ShortcutManager;
 }

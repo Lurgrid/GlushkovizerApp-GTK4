@@ -1,105 +1,94 @@
 using Gtk 4.0;
+using Adw 1;
 
 template $GlushkovizerApp : $AdwApplicationWindow {
     default-height: 720;
     default-width: 1080;
     title: "Glushkovizer App";
 
-    ScrolledWindow {
-        hscrollbar-policy: never;
+    Box {
+        orientation: vertical;
+        spacing: 10;
+        margin-bottom: 10;
+        margin-end: 10;
+        margin-start: 10;
+        margin-top: 10;
 
         Box {
-            orientation: vertical;
+            hexpand: true;
             spacing: 10;
-            margin-bottom: 10;
-            margin-end: 10;
-            margin-start: 10;
-            margin-top: 10;
 
-            Box {
-                hexpand: true;
-                spacing: 10;
-
-                Button {
-                    label: _("Parse");
-                    clicked => $handle_parse_clicked() swapped;
-                }
-
-                Entry entry {
-                    hexpand: true;
-                    placeholder-text: _("Enter a regular expresion");
-                    activate => $handle_entry_activate() swapped;
-                }
-
-                Button {
-                    label: _("Save");
-                    clicked => $handle_save_clicked() swapped;
-                }
-
-                Button {
-                    label: _("Import");
-                    clicked => $handle_import_clicked() swapped;
-                }
+            Button {
+                label: _("Parse");
+                clicked => $handle_parse_clicked() swapped;
             }
 
-            TextView error {
-                visible: false;
-                editable: false;
-                valign: center;
+            Entry entry {
                 hexpand: true;
-                vexpand: true;
+                placeholder-text: _("Enter a regular expresion");
+                activate => $handle_entry_activate() swapped;
+            }
+
+            Button {
+                label: _("Save");
+                clicked => $handle_save_clicked() swapped;
+            }
+
+            Button {
+                label: _("Import");
+                clicked => $handle_import_clicked() swapped;
+            }
+        }
+
+        Box {
+            orientation: horizontal;
+            spacing: 10;
+
+            Button prev {
+                label: "◀";
+                clicked => $prev_handle() swapped;
+            }
+
+            ScrolledWindow scroll_switcher {
+                vscrollbar-policy: never;
+                hexpand: true;
 
                 styles [
-                    "error_box",
+                    "stack_scroll"
                 ]
+
+                StackSwitcher switcher {
+                    stack: stack;
+                }
             }
 
-            Box {
-                orientation: horizontal;
-                spacing: 10;
-
-                Button prev {
-                    label: "◀";
-                    clicked => $prev_handle() swapped;
-                }
-
-                ScrolledWindow scroll_switcher {
-                    vscrollbar-policy: never;
-                    hexpand: true;
-
-                    styles [
-                        "stack_scroll"
-                    ]
-
-                    StackSwitcher switcher {
-                        stack: stack;
-                    }
-                }
-
-                Button next {
-                    label: "▶";
-                    clicked => $next_handle() swapped;
-                }
-
+            Button next {
+                label: "▶";
+                clicked => $next_handle() swapped;
             }
 
-            Stack stack {
-                transition-type: crossfade;
+        }
 
-                StackPage {
-                    name: _("automata");
-                    title: _("Automata");
+        Stack stack {
+            transition-type: crossfade;
 
-                    child: Box {
+            StackPage {
+                name: _("automata");
+                title: _("Automata");
+
+                child: ScrolledWindow {
+                    hscrollbar-policy: never;
+
+                    Box {
                         orientation: vertical;
 
                         Image image {
                             hexpand: true;
                             vexpand: true;
                         }
-                    };
-                }
+                    }
+                };
             }
-        }       
+        }
     }
 }

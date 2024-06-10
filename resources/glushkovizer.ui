@@ -6,99 +6,87 @@
     <property name="default-width">1080</property>
     <property name="title">Glushkovizer App</property>
     <child>
-      <object class="GtkScrolledWindow">
-        <property name="hscrollbar-policy">2</property>
+      <object class="GtkBox">
+        <property name="orientation">1</property>
+        <property name="spacing">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-top">10</property>
         <child>
           <object class="GtkBox">
-            <property name="orientation">1</property>
+            <property name="hexpand">true</property>
             <property name="spacing">10</property>
-            <property name="margin-bottom">10</property>
-            <property name="margin-end">10</property>
-            <property name="margin-start">10</property>
-            <property name="margin-top">10</property>
             <child>
-              <object class="GtkBox">
-                <property name="hexpand">true</property>
-                <property name="spacing">10</property>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label" translatable="true">Parse</property>
-                    <signal name="clicked" handler="handle_parse_clicked" swapped="True"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry">
-                    <property name="hexpand">true</property>
-                    <property name="placeholder-text" translatable="true">Enter a regular expresion</property>
-                    <signal name="activate" handler="handle_entry_activate" swapped="True"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label" translatable="true">Save</property>
-                    <signal name="clicked" handler="handle_save_clicked" swapped="True"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label" translatable="true">Import</property>
-                    <signal name="clicked" handler="handle_import_clicked" swapped="True"/>
-                  </object>
-                </child>
+              <object class="GtkButton">
+                <property name="label" translatable="true">Parse</property>
+                <signal name="clicked" handler="handle_parse_clicked" swapped="True"/>
               </object>
             </child>
             <child>
-              <object class="GtkTextView" id="error">
-                <property name="visible">false</property>
-                <property name="editable">false</property>
-                <property name="valign">3</property>
+              <object class="GtkEntry" id="entry">
                 <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
+                <property name="placeholder-text" translatable="true">Enter a regular expresion</property>
+                <signal name="activate" handler="handle_entry_activate" swapped="True"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="true">Save</property>
+                <signal name="clicked" handler="handle_save_clicked" swapped="True"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="true">Import</property>
+                <signal name="clicked" handler="handle_import_clicked" swapped="True"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">0</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkButton" id="prev">
+                <property name="label">◀</property>
+                <signal name="clicked" handler="prev_handle" swapped="True"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="scroll_switcher">
+                <property name="vscrollbar-policy">2</property>
+                <property name="hexpand">true</property>
                 <style>
-                  <class name="error_box"/>
+                  <class name="stack_scroll"/>
                 </style>
+                <child>
+                  <object class="GtkStackSwitcher" id="switcher">
+                    <property name="stack">stack</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="GtkBox">
-                <property name="orientation">0</property>
-                <property name="spacing">10</property>
-                <child>
-                  <object class="GtkButton" id="prev">
-                    <property name="label">◀</property>
-                    <signal name="clicked" handler="prev_handle" swapped="True"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="scroll_switcher">
-                    <property name="vscrollbar-policy">2</property>
-                    <property name="hexpand">true</property>
-                    <style>
-                      <class name="stack_scroll"/>
-                    </style>
+              <object class="GtkButton" id="next">
+                <property name="label">▶</property>
+                <signal name="clicked" handler="next_handle" swapped="True"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <property name="transition-type">1</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name" translatable="true">automata</property>
+                <property name="title" translatable="true">Automata</property>
+                <property name="child">
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">2</property>
                     <child>
-                      <object class="GtkStackSwitcher" id="switcher">
-                        <property name="stack">stack</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton" id="next">
-                    <property name="label">▶</property>
-                    <signal name="clicked" handler="next_handle" swapped="True"/>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkStack" id="stack">
-                <property name="transition-type">1</property>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name" translatable="true">automata</property>
-                    <property name="title" translatable="true">Automata</property>
-                    <property name="child">
                       <object class="GtkBox">
                         <property name="orientation">1</property>
                         <child>
@@ -108,9 +96,9 @@
                           </object>
                         </child>
                       </object>
-                    </property>
+                    </child>
                   </object>
-                </child>
+                </property>
               </object>
             </child>
           </object>

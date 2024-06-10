@@ -1,30 +1,22 @@
+use super::automata_page::AutomataPage;
+use crate::utils::get_automata_texture;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
+use adw::AlertDialog;
 use glib::subclass::InitializingObject;
 use glushkovizer::prelude::*;
 use glushkovizer::{automata::Automata, regexp::RegExp};
-use gtk::ScrolledWindow;
 use gtk::{
-    gdk::Texture, gdk_pixbuf::PixbufLoader, glib, template_callbacks, Align, Button,
-    CompositeTemplate, Entry, FileDialog, FileFilter, Image, Stack, StackSwitcher, TextView,
+    glib, template_callbacks, Button, CompositeTemplate, Entry, FileDialog, FileFilter, Image,
+    ScrolledWindow, Stack, StackSwitcher,
 };
 use std::{
     cell::Cell,
     fmt::Display,
     fs::File,
-    hash::Hash,
-    io::{BufReader, Error, Result, Write},
+    io::{BufReader, Write},
     path::PathBuf,
-    process::{Command, Stdio},
 };
-
-macro_rules! error {
-    ($error:expr, $x:expr) => {{
-        $error.buffer().set_text($x.to_string().as_str());
-        $error.set_visible(true);
-        return;
-    }};
-}
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/com/sagbot/GlushkovApp/glushkovizer.ui")]
@@ -34,8 +26,6 @@ pub struct GlushkovizerApp {
     pub entry: TemplateChild<Entry>,
     #[template_child]
     pub image: TemplateChild<Image>,
-    #[template_child]
-    pub error: TemplateChild<TextView>,
     #[template_child]
     pub scroll_switcher: TemplateChild<ScrolledWindow>,
     #[template_child]
@@ -76,25 +66,6 @@ impl ObjectSubclass for GlushkovizerApp {
 impl ObjectImpl for GlushkovizerApp {
     fn constructed(&self) {
         self.parent_constructed();
-
-        self.error
-            .bind_property("visible", &self.stack.get(), "visible")
-            .invert_boolean()
-            .bidirectional()
-            .sync_create()
-            .build();
-
-        self.stack
-            .bind_property("visible", &self.switcher.get(), "visible")
-            .bidirectional()
-            .sync_create()
-            .build();
-
-        self.next
-            .bind_property("visible", &self.prev.get(), "visible")
-            .bidirectional()
-            .sync_create()
-            .build();
     }
 }
 
@@ -105,8 +76,7 @@ impl GlushkovizerApp {
         let sr = self.entry.text().to_string();
         let r = match RegExp::try_from(sr) {
             Err(s) => {
-                self.error.buffer().set_text(s.as_str());
-                self.error.set_visible(true);
+                self.error_handler(&s);
                 return;
             }
             Ok(r) => r,
@@ -119,7 +89,10 @@ impl GlushkovizerApp {
     fn handle_entry_activate(&self, _: &Entry) {
         let sr = self.entry.text().to_string();
         let r = match RegExp::try_from(sr) {
-            Err(s) => error!(self.error, s),
+            Err(s) => {
+                self.error_handler(&s);
+                return;
+            }
             Ok(r) => r,
         };
         self.automata.set(Automata::from(r));
@@ -138,14 +111,14 @@ impl GlushkovizerApp {
 
     #[template_callback]
     async fn prev_handle(&self, _: &Button) {
-        self.scroll_switcher
-            .emit_scroll_child(gtk::ScrollType::PageLeft, true);
+        let adj = self.scroll_switcher.hadjustment();
+        adj.set_value(adj.value() - self.scroll_switcher.width() as f64);
     }
 
     #[template_callback]
     async fn next_handle(&self, _: &Button) {
-        self.scroll_switcher
-            .emit_scroll_child(gtk::ScrollType::PageRight, false);
+        let adj = self.scroll_switcher.hadjustment();
+        adj.set_value(adj.value() + self.scroll_switcher.width() as f64);
     }
 }
 
@@ -159,14 +132,16 @@ impl GlushkovizerApp {
 
         let a = unsafe { &*self.automata.as_ptr() };
         let width = self.stack.width();
-        let height = self.obj().height() - 110;
+        let height = self.stack.height();
         let texture = match get_automata_texture(a, width, height) {
-            Err(e) => error!(self.error, e),
+            Err(e) => {
+                self.error_handler(&e);
+                return;
+            }
             Ok(t) => t,
         };
         self.image.set_from_paintable(Some(&texture));
         self.image.set_size_request(width, height);
-        self.stack.set_visible(true);
 
         let scc = a
             .extract_scc()
@@ -175,20 +150,17 @@ impl GlushkovizerApp {
             .collect::<Vec<_>>();
 
         for (ind, automata) in scc.into_iter().enumerate() {
-            let texture = match get_automata_texture(&automata, width, height) {
-                Err(e) => error!(self.error, e),
+            let auto = match AutomataPage::new(automata, width, height) {
+                Err(e) => {
+                    self.error_handler(&e);
+                    return;
+                }
                 Ok(t) => t,
             };
-            let image = Image::from_paintable(Some(&texture));
-            image.set_halign(Align::Fill);
-            image.set_valign(Align::Fill);
-            image.set_hexpand(true);
-            image.set_vexpand(true);
-            image.set_size_request(width, height);
             self.stack.add_titled(
-                &image,
-                Some(&format!("orbit{ind}")),
-                &format!("Orbit N°{ind}"),
+                &ScrolledWindow::builder().child(&auto).build(),
+                Some(&format!("orbit{}", ind + 1)),
+                &format!("Orbit N°{}", ind + 1),
             );
         }
     }
@@ -200,18 +172,30 @@ impl GlushkovizerApp {
             .build();
         let file = d.save_future(Some(self.obj().as_ref())).await;
         match file {
-            Err(e) => error!(self.error, e),
+            Err(e) => {
+                self.error_handler(&e);
+                return;
+            }
             Ok(file) => {
                 let mut path: PathBuf = file.path().unwrap();
                 path.set_extension("json");
                 let mut file = match File::create_new(path.clone()) {
-                    Err(e) => error!(self.error, e),
+                    Err(e) => {
+                        self.error_handler(&e);
+                        return;
+                    }
                     Ok(f) => f,
                 };
                 match serde_json::to_string(unsafe { &*self.automata.as_ptr() }) {
-                    Err(e) => error!(self.error, e),
+                    Err(e) => {
+                        self.error_handler(&e);
+                        return;
+                    }
                     Ok(json) => match file.write_all(json.as_bytes()) {
-                        Err(e) => error!(self.error, e),
+                        Err(e) => {
+                            self.error_handler(&e);
+                            return;
+                        }
                         Ok(_) => (),
                     },
                 }
@@ -229,89 +213,43 @@ impl GlushkovizerApp {
             .build();
         let file = d.open_future(Some(self.obj().as_ref())).await;
         match file {
-            Err(e) => error!(self.error, e),
+            Err(e) => {
+                self.error_handler(&e);
+                return;
+            }
             Ok(file) => {
                 let path: PathBuf = file.path().unwrap();
                 let file = match File::open(path) {
-                    Err(e) => error!(self.error, e),
+                    Err(e) => {
+                        self.error_handler(&e);
+                        return;
+                    }
                     Ok(f) => f,
                 };
                 self.automata
                     .set(match serde_json::from_reader(BufReader::new(file)) {
-                        Err(e) => error!(self.error, e),
+                        Err(e) => {
+                            self.error_handler(&e);
+                            return;
+                        }
                         Ok(a) => a,
                     })
             }
         };
         self.update();
     }
-}
 
-/// Renvoie une Texture représentant le graph, en cas d'erreur renvoie cette
-/// erreur
-fn get_automata_texture<'a, T, V>(
-    a: &impl ToDot<'a, T, V>,
-    width: i32,
-    height: i32,
-) -> Result<Texture>
-where
-    T: Eq + Hash + Display + Clone,
-    V: Eq + Hash + Display + Clone,
-{
-    let svg = get_svg(
-        a,
-        gtk::Settings::default()
-            .map(|s| s.is_gtk_application_prefer_dark_theme())
-            .unwrap_or(false),
-    )?;
-    let loader = PixbufLoader::new();
-
-    loader.set_size(width, height);
-    loader
-        .write(svg.as_bytes())
-        .expect("Cannot write on the PixbufLoader");
-    loader.close().expect("Cannot close the PixbufLoader");
-    let pixbuf = loader
-        .pixbuf()
-        .expect("Cannot convert the PixbufLoader to Pixbuf");
-    Ok(Texture::for_pixbuf(&pixbuf))
-}
-
-/// Renvoie la représentation de "g" en SVG en cas de succès, sinon en cas
-/// d'erreur renvoie cette erreur.
-fn get_svg<'a, T, V>(g: &impl ToDot<'a, T, V>, inverse: bool) -> Result<String>
-where
-    T: Eq + Hash + Display + Clone,
-    V: Eq + Hash + Display + Clone,
-{
-    use std::io::ErrorKind;
-    let mut c = Command::new("dot")
-        .arg("-Tsvg")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?;
-
-    if let Some(ref mut inp) = c.stdin {
-        inp.write_all(g.to_dot(inverse).unwrap().as_bytes())?;
-    } else {
-        return Err(Error::new(ErrorKind::Other, "No input"));
+    fn error_handler(&self, error: &impl Display) {
+        AlertDialog::builder()
+            .title("You have an error in your regular expression syntax !")
+            .body(error.to_string())
+            .can_close(true)
+            .build()
+            .present(self.obj().upcast_ref::<adw::ApplicationWindow>());
     }
-    let output = c.wait_with_output()?;
-    String::from_utf8(output.stdout)
-        .map_err(|_| Error::new(ErrorKind::Other, "Not a valid utf-8 output"))
-        .map(|s| {
-            if inverse {
-                s.replace("black", "white")
-            } else {
-                s
-            }
-        })
 }
 
 impl WidgetImpl for GlushkovizerApp {}
-
 impl WindowImpl for GlushkovizerApp {}
-
 impl ApplicationWindowImpl for GlushkovizerApp {}
-
 impl AdwApplicationWindowImpl for GlushkovizerApp {}

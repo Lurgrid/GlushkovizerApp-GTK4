@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="AutomataPage" parent="GtkBox">
+    <property name="orientation">1</property>
+    <child>
+      <object class="GtkImage" id="image">
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
+        <property name="halign">0</property>
+        <property name="valign">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="valign">3</property>
+        <property name="halign">3</property>
+        <property name="spacing">50</property>
+        <property name="margin-bottom">50</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">1</property>
+            <property name="spacing">15</property>
+            <style>
+              <class name="prop_box"/>
+            </style>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="true">Stable ? </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="stable">
+                    <property name="label">N/A</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="true">Transverse ? </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="transverse">
+                    <property name="label">N/A</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="next">
+            <property name="label" translatable="true">Next</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
