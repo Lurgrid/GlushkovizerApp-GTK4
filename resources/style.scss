@@ -2,17 +2,6 @@
     font-family: Cantarell;
 }
 
-label.glush_title {
-    font-weight: bold;
-    font-size: 2em;
-}
-
-textview.error_box {
-    padding: 10px;
-    border-radius: 10px;
-    border: 2px solid @error_color;
-}
-
 .stack_scroll scrollbar,
 .stack_scroll scrollbar slider,
 .stack_scroll scrollbar trough {
@@ -24,5 +13,14 @@ textview.error_box {
 box.prop_box {
     padding: 10px;
     border-radius: 10px;
-    border: 2px solid @error_color;
+    border: 2px solid @borders;
+    font-weight: bold;
+    font-size: 2em;
+}
+
+button.next {
+    padding: 10px;
+    font-weight: bold;
+    font-size: 2em;
+    color: @success_color;
 }

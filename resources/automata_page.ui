@@ -57,8 +57,18 @@
           </object>
         </child>
         <child>
-          <object class="GtkButton" id="next">
-            <property name="label" translatable="true">Next</property>
+          <object class="GtkBox">
+            <property name="valign">3</property>
+            <property name="halign">3</property>
+            <child>
+              <object class="GtkButton" id="next">
+                <property name="label" translatable="true">Next</property>
+                <signal name="clicked" handler="next_handler_clicked" swapped="True"/>
+                <style>
+                  <class name="next"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
       </object>

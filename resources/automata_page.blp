@@ -47,8 +47,19 @@ template $AutomataPage : Box {
             }
         }
 
-        Button next {
-            label: _("Next");
+        Box {
+            valign: center;
+            halign: center;
+
+            Button next {
+                label: _("Next");
+                clicked => $next_handler_clicked() swapped;
+
+                styles [
+                    "next"
+                ]
+            }
         }
+
     }
 }
