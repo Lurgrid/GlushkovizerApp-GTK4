@@ -67,11 +67,10 @@ impl AutomataPage {
     pub fn next_handler_clicked(&self, _: &Button) {
         let automata = unsafe { &*self.automata.get() };
 
-        let doort = automata.kosaraju_type();
-        let mut inp = HashSet::new();
-        let mut out = HashSet::new();
-        doort.into_iter().for_each(|l| {
-            l.into_iter().for_each(|(rs, dtype)| match dtype {
+        automata.kosaraju_type().into_iter().for_each(|doort| {
+            let mut inp = HashSet::new();
+            let mut out = HashSet::new();
+            doort.into_iter().for_each(|(rs, dtype)| match dtype {
                 DoorType::None => (),
                 DoorType::In => {
                     inp.insert(rs);
@@ -83,19 +82,19 @@ impl AutomataPage {
                     out.insert(rs.clone());
                     inp.insert(rs);
                 }
-            })
-        });
+            });
 
-        out.into_iter().for_each(|output| {
-            automata
-                .get_follows(&output)
-                .unwrap()
-                .into_iter()
-                .for_each(|(symbol, set)| {
-                    set.into_iter().for_each(|to| {
-                        let _ = automata.remove_transition(&output, &to, &symbol);
+            out.into_iter().for_each(|output| {
+                automata
+                    .get_follows(&output)
+                    .unwrap()
+                    .into_iter()
+                    .for_each(|(symbol, set)| {
+                        set.into_iter().for_each(|to| {
+                            let _ = automata.remove_transition(&output, &to, &symbol);
+                        });
                     });
-                });
+            });
         });
 
         if let Err(e) = self.update() {
@@ -103,6 +102,7 @@ impl AutomataPage {
                 .obj()
                 .ancestor(crate::glushkovizerapp::GlushkovizerApp::static_type())
                 .expect("Failed to retrieve the GlushkovizerApp window");
+
             AlertDialog::builder()
                 .title("An error has occurred")
                 .body(e.to_string())
