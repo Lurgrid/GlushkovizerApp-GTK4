@@ -1,9 +1,11 @@
 #[cfg(not(feature = "no-blp"))]
 use std::{
     fs::read_dir,
-    io::{Error, ErrorKind, Result},
+    io::{Error, ErrorKind},
     process::Command,
 };
+
+use std::io::Result;
 
 fn main() -> Result<()> {
     #[cfg(not(feature = "no-blp"))]
