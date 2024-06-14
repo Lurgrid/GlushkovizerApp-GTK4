@@ -1,6 +1,6 @@
 [package]
 name = "glushkovizer-gtk4"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2021"
 description = "Graphical application using the Glushkovizer library to transform a regular expression into an automaton and represent it and its orbits "
 authors = ["Lurgrid <lurgrid@sagbot.com>"]
