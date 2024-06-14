@@ -4,6 +4,8 @@
   <template class="GlushkovizerApp" parent="AdwApplicationWindow">
     <property name="default-height">720</property>
     <property name="default-width">1080</property>
+    <property name="deletable">true</property>
+    <property name="resizable">true</property>
     <property name="title">Glushkovizer App</property>
     <child>
       <object class="GtkBox">
@@ -13,6 +15,9 @@
         <property name="margin-end">10</property>
         <property name="margin-start">10</property>
         <property name="margin-top">10</property>
+        <child>
+          <object class="AdwHeaderBar"></object>
+        </child>
         <child>
           <object class="GtkBox">
             <property name="hexpand">true</property>

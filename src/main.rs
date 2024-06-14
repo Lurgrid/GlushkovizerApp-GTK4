@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 mod glushkovizerapp;
 mod utils;
 use glushkovizerapp::GlushkovizerApp;

@@ -4,6 +4,8 @@ using Adw 1;
 template $GlushkovizerApp : $AdwApplicationWindow {
     default-height: 720;
     default-width: 1080;
+    deletable: true;
+    resizable: true;
     title: "Glushkovizer App";
 
     Box {
@@ -13,6 +15,8 @@ template $GlushkovizerApp : $AdwApplicationWindow {
         margin-end: 10;
         margin-start: 10;
         margin-top: 10;
+
+        $AdwHeaderBar {}
 
         Box {
             hexpand: true;
